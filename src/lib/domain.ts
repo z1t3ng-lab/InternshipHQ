@@ -87,6 +87,7 @@ export type ApplicationRecord = ApplicationInput & {
   createdAt: string;
   updatedAt: string;
   activities: Activity[];
+  statusEvents?: { status: string; occurredAt: string }[];
 };
 export const EMPTY_APPLICATION: ApplicationInput = {
   ...applicationSchema.parse({

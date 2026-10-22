@@ -212,7 +212,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
     }
     func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
         let panel = NSOpenPanel(); panel.canChooseDirectories = false; panel.allowsMultipleSelection = parameters.allowsMultipleSelection
-        panel.allowedContentTypes = [.commaSeparatedText, .plainText, .pdf, UTType(filenameExtension: "docx")!]; panel.message = "Choose a CSV spreadsheet, PDF, or Word document."
+        panel.allowedContentTypes = [.commaSeparatedText, .plainText, .pdf, .json, UTType(filenameExtension: "docx")!, UTType(filenameExtension: "eml") ?? .data, UTType(filenameExtension: "db") ?? .data, UTType(filenameExtension: "sqlite") ?? .data]; panel.message = "Choose a document, email, backup, or Google client JSON file."
         panel.beginSheetModal(for: window) { result in completionHandler(result == .OK ? panel.urls : nil) }
     }
     func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) { track(download) }

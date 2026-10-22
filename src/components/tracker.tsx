@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import {
+  ArchiveRestore,
+  BarChart3,
   ArrowDownToLine,
   ArrowRight,
   BriefcaseBusiness,
@@ -30,13 +32,21 @@ import { ApplicationForm, CompleteAction } from "./application-form";
 import { ImportView } from "./import-view";
 import { request } from "./ui";
 import { DocumentsView } from "./documents-view";
+import { DocumentUsageView } from "./document-usage-view";
+import { InterviewsView } from "./interviews-view";
+import { BackupsView } from "./backups-view";
+import { InsightsView } from "./insights-view";
+import { EmailView } from "./email-view";
 
 const NAV = [
   { key: "dashboard", label: "Overview", Icon: LayoutDashboard },
   { key: "applications", label: "Applications", Icon: BriefcaseBusiness },
   { key: "board", label: "Board view", Icon: Columns3 },
   { key: "today", label: "Next actions", Icon: ListTodo },
+  { key: "interviews", label: "Interviews", Icon: CalendarDays },
   { key: "documents", label: "Documents", Icon: FolderOpen },
+  { key: "document-usage", label: "Document usage", Icon: FolderOpen },
+  { key: "insights", label: "Insights", Icon: BarChart3 },
 ];
 const TITLES: Record<string, string> = {
   dashboard: "Overview",
@@ -45,7 +55,11 @@ const TITLES: Record<string, string> = {
   today: "Next actions",
   documents: "Documents",
   import: "Import & export",
-  email: "Email integration",
+  email: "Email updates",
+  interviews: "Interview planner",
+  "document-usage": "Document usage",
+  insights: "Application insights",
+  backups: "Backups & restore",
 };
 export function Tracker({ demo }: { demo: boolean }) {
   const [records, setRecords] = useState<ApplicationRecord[]>([]);
@@ -282,8 +296,19 @@ export function Tracker({ demo }: { demo: boolean }) {
             }}
           >
             <Mail size={19} />
-            <span>Email integration</span>
-            <span className="soon-pill">Soon</span>
+            <span>Email updates</span>
+          </a>
+          <a
+            href="#backups"
+            className={`nav-item ${view === "backups" ? "active" : ""}`}
+            aria-current={view === "backups" ? "page" : undefined}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("backups");
+            }}
+          >
+            <ArchiveRestore size={19} />
+            <span>Backups & restore</span>
           </a>
         </nav>
         <div className="sidebar-bottom">
@@ -393,7 +418,27 @@ export function Tracker({ demo }: { demo: boolean }) {
               {view === "today" && <TodayPage {...props} />}
               {view === "documents" && <DocumentsView records={records} />}
               {view === "import" && <ImportView onImported={refresh} />}
-              {view === "email" && <EmailView />}
+              {view === "email" && (
+                <EmailView
+                  records={records}
+                  onChanged={refresh}
+                  onOpen={open}
+                />
+              )}
+              {view === "interviews" && (
+                <InterviewsView
+                  records={records}
+                  onChanged={refresh}
+                  onOpen={open}
+                />
+              )}
+              {view === "document-usage" && (
+                <DocumentUsageView records={records} onOpen={open} />
+              )}
+              {view === "insights" && (
+                <InsightsView records={records} today={today} onOpen={open} />
+              )}
+              {view === "backups" && <BackupsView onRestored={refresh} />}
             </>
           )}
         </main>
@@ -445,65 +490,5 @@ export function Tracker({ demo }: { demo: boolean }) {
         </div>
       )}
     </div>
-  );
-}
-function EmailView() {
-  return (
-    <>
-      <div className="page-heading">
-        <div>
-          <div className="eyebrow">A LITTLE LESS ADMIN, SOMEDAY</div>
-          <h1>Email, with you in control.</h1>
-          <p>A look at what’s next for InternshipHQ.</p>
-        </div>
-        <span className="badge amber">Planned · Phase two</span>
-      </div>
-      <section className="card email-card">
-        <div className="email-illustration">
-          <div className="mail-orbit">
-            <Mail size={42} strokeWidth={1.2} />
-          </div>
-          <span className="mail-check">
-            <Check size={18} />
-          </span>
-        </div>
-        <h2>
-          Your inbox could help.
-          <br />
-          You’ll always have the final say.
-        </h2>
-        <p>
-          Gmail integration is not connected or implemented yet. Today, you can
-          save a source email link on any application and use CSV to bring in
-          existing records.
-        </p>
-        <div className="email-flow">
-          <div>
-            <span>01</span>
-            <h3>Connect securely</h3>
-            <p>A future OAuth flow with read-only access.</p>
-          </div>
-          <ArrowRight size={20} />
-          <div>
-            <span>02</span>
-            <h3>Review suggestions</h3>
-            <p>See the source email and supporting evidence.</p>
-          </div>
-          <ArrowRight size={20} />
-          <div>
-            <span>03</span>
-            <h3>You decide</h3>
-            <p>Accept, edit, or dismiss every suggested update.</p>
-          </div>
-        </div>
-        <div className="email-footnote">
-          <ShieldCheck size={18} />
-          <p>
-            No inbox access, background checks, or email sending is active.
-            ChatGPT’s Gmail connection is separate from this app.
-          </p>
-        </div>
-      </section>
-    </>
   );
 }

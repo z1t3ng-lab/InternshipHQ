@@ -1,4 +1,5 @@
-/** Phase two contract only. No provider is connected or executed in phase one. */
+/** Provider-neutral contracts. The current Gmail transport and review service
+ * live in gmail.ts and reviews.ts; these interfaces describe future adapters. */
 import type { ApplicationInput } from "../domain";
 export type EmailMessage = {
   providerMessageId: string;
@@ -27,5 +28,5 @@ export interface ReadOnlyEmailProvider {
 export interface EmailSuggestionParser {
   suggest(message: EmailMessage): Promise<EmailSuggestion[]>;
 }
-// A future review service must validate accepted fields with applicationSchema,
+// Review services must validate accepted fields with applicationSchema,
 // and use applications.ts for audited writes. Parsing alone must never write records.

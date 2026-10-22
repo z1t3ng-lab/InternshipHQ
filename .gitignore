@@ -8,6 +8,8 @@ node_modules/
 *.db-*
 *.sqlite*
 backups/
+!src/app/api/backups/
+!src/app/api/backups/**
 src/generated/
 *.tsbuildinfo
 next-env.d.ts
@@ -15,3 +17,5 @@ desktop/dist/
 test-results/
 playwright-report/
 .DS_Store
+# Local Gmail OAuth configuration, encryption key, and encrypted tokens
+.private-gmail/

@@ -10,6 +10,7 @@ import { z } from "zod";
 import { resolveDocuments } from "./documents";
 import { DOCUMENT_SLOTS } from "./document-types";
 export const includeActivities = {
+  statusEvents: { orderBy: { occurredAt: "asc" as const } },
   activities: { orderBy: { createdAt: "desc" as const } },
 };
 export async function listApplications() {
@@ -40,6 +41,7 @@ export async function createApplication(raw: unknown, allowDuplicate = false) {
     return tx.application.create({
       data: {
         ...data,
+        statusEvents: { create: { status: data.status } },
         activities: {
           create: {
             type: "created",
@@ -119,7 +121,13 @@ export async function updateApplication(
     }
     return tx.application.update({
       where: { id },
-      data: { ...data, activities: { create: activities } },
+      data: {
+        ...data,
+        ...(before.status !== data.status
+          ? { statusEvents: { create: { status: data.status } } }
+          : {}),
+        activities: { create: activities },
+      },
       include: includeActivities,
     });
   });

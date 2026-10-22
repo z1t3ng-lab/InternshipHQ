@@ -75,6 +75,36 @@ Archive a version to hide it from new applications. Existing applications keep t
 
 CSV exports include document labels and IDs, but not uploaded file contents. Reimporting into the same document library preserves the links. If a referenced version is absent, the importer keeps its descriptive label and clears the unavailable link. Use a SQLite backup to restore the full document library and links on another computer.
 
+### Backups and restore
+
+Open **Backups & restore** to create a full copy, download a backup, import an existing `.db` backup (up to 250 MB), or preview and restore one. Automatic backups are enabled by default and run once every 24 hours while the server is running, catching up on the next launch. The latest 14 automatic copies are retained; manual, imported, and recovery copies are not automatically removed.
+
+Backups include applications, original uploaded document bytes, history, interviews, email reviews, and processed Gmail message IDs. The screen shows the local folder, last successful automatic backup, and failures. Backups reside under `prisma/backups/internshiphq/` for the default database, or `backups/<database-name>/` next to a custom database. They are excluded from Git. Download a copy to a separate drive for protection from disk loss.
+
+Restoring shows record counts and requires typing `RESTORE`. The app checks database integrity and compatible columns, acquires a write lock, saves a consistent **Before restore** recovery snapshot, and replaces workspace tables in one transaction. Failure rolls back the replacement. Restore the recovery copy to undo a restore. Older InternshipHQ backups without interview/email tables are supported. OAuth credentials and automatic-check settings are separate local files; database restore does not reconnect Gmail.
+
+### Interview planner
+
+Open **Interviews** to schedule multiple rounds per application. Store the date/time, IANA time zone, duration, interviewer names, location or meeting URL, preparation notes, and follow-up notes. Switch between Upcoming, Past & finished, and All. Edit a round to mark it Completed or Cancelled. Application status is controlled independently.
+
+Appointments store a UTC instant plus their original time zone. Invalid daylight-saving gap times are rejected. A daylight-saving option chooses the first or second occurrence when clocks repeat a local time. Appointments and their edits are included in backups and application history.
+
+### Document usage
+
+Select **View usage** on a document card or open **Document usage**. Choose any version, including archived ones, to see linked companies, roles, dates applied, and current statuses. Open an application directly or download the exact document. The screen reflects the version currently recorded on each application; earlier selection changes remain in its history.
+
+### Email-assisted updates
+
+Open **Email updates** to connect Gmail, paste a message, or import an `.eml`. Review the supporting quote, select the correct application, compare current and proposed fields, then accept or dismiss. Nothing changes automatically. English and French message patterns are supported, and duplicate messages retain their previous review decision.
+
+Gmail requires a Google Desktop OAuth client JSON and account consent. The setup guide is in the app. It uses read-only access, encrypted local tokens, manual batches, and optional checks every 30 minutes while the app is open. Personal messages, OAuth files, and tokens are excluded from GitHub. See [email setup and behavior](docs/email-integration.md) for the connection steps and limitations.
+
+### Application funnel and timing insights
+
+Open **Insights** to filter by date applied and view submitted applications, responses, interview stages, offers, current statuses, and applications still waiting for a recorded response. Each stage shows its count and percentage of the submitted cohort. Here, submission evidence is a date applied or a recorded Applied/Assessment/Interview/Offer stage; the dashboard’s simpler Submitted card still counts explicit dates applied.
+
+Funnel stages use current and recorded past statuses. Stages may be skipped; an offer does not invent an interview. Median timing shows the number of usable samples and measures Toronto calendar days from Date applied to the first **recorded status transition**. This is tracking latency as well as employer response time. Initially entered/imported statuses do not invent historical dates. Unknown timing is shown as a dash, and waiting is never treated as rejection.
+
 ### Definitions and dates
 
 - **Total:** all stored applications.
@@ -143,7 +173,7 @@ Create a consistent backup, even while the app is running:
 npm run db:backup
 ```
 
-This uses SQLite's backup API, includes application history and migration metadata, and prints the timestamped file under `backups/`. Protect that file as personal data. CSV is a portable alternate backup, but SQLite backup preserves all internal IDs and database metadata exactly.
+This uses SQLite's backup API, includes application history and migration metadata, and prints the timestamped file in the same folder shown by the Backups & restore screen. Protect that file as personal data. CSV preserves application fields and activity history only. Full SQLite backups also preserve document bytes, interviews, email reviews, and internal metadata.
 
 To restore without overwriting your current database:
 
@@ -197,18 +227,18 @@ src/lib/applications.ts  Transactional writes and history
 src/lib/csv.ts           CSV parsing, mapping, row validation, safe export
 src/lib/importer.ts      Transactional preview/import and duplicate policy
 src/lib/http.ts          JSON request checks and user-facing API errors
-src/lib/email/           Future provider/parser contracts (not active)
+src/lib/email/           Gmail OAuth, MIME parsing, evidence and transactional reviews
 prisma/                  Schema and committed SQL migrations
 scripts/                 DB initialization, fictional demo, backup, test server
 desktop/                 Native Swift/WebKit launcher and its local Node server
 tests/                   Focused data tests and browser workflows
-docs/email-integration.md Phase-two design and connection points
+docs/email-integration.md Gmail setup, privacy and review behavior
 ```
 
 The client loads applications through `/api/applications`. It computes small personal-workspace views from those stored records; writes always go through server validation and Prisma. There is no browser-local copy used as the source of truth. The chart is simple labeled HTML/CSS, so a charting dependency is unnecessary. Run `npm run format` to format source files.
 
 ## Email integration and limitations
 
-Gmail is **not implemented or connected**. `src/lib/email/provider.ts` defines the future read-only provider and suggestion-parser interfaces. [The phase-two notes](docs/email-integration.md) describe OAuth, evidence, review, idempotency, and scheduling. There is no fake Connect Gmail button, simulated email check, or dependency on ChatGPT's Gmail connection.
+Gmail is implemented as an optional read-only integration, configured through **Email updates** using your own Google Desktop OAuth client. The ChatGPT Gmail connector is separate and is not used by the app. [Connection and review details](docs/email-integration.md) explain setup, evidence, duplicate handling, and scheduling.
 
-This is a one-user laptop application, without authentication, multi-device synchronization, or public deployment. Keep it bound to localhost. Board movement uses accessible native selects; drag-and-drop is intentionally absent. Uploaded documents are stored locally in SQLite; code updates are published to GitHub, and personal documents stay local. Import appends or skips; it never overwrites records. Calendar dates and blank values are preserved, and no employer information is fetched or invented. Existing open tabs need a refresh to pick up changes made in another tab. The app does not send email or schedule interviews.
+This is a one-user laptop application, without authentication, multi-device synchronization, or public deployment. Keep it bound to localhost. Board movement uses accessible native selects; drag-and-drop is intentionally absent. Uploaded documents are stored locally in SQLite; code updates are published to GitHub, and personal documents stay local. Import appends or skips; it never overwrites records. Calendar dates and blank values are preserved, and no employer information is fetched or invented. Existing open tabs need a refresh to pick up changes made in another tab. The app does not send email or create events in an external calendar. Interviews are planned locally.

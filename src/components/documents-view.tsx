@@ -448,6 +448,12 @@ export function DocumentsView({ records }: { records: ApplicationRecord[] }) {
                     </div>
                     <div className="document-card-actions">
                       <a
+                        className="button subtle"
+                        href={`#document-usage?document=${doc.id}`}
+                      >
+                        View usage ({used})
+                      </a>
+                      <a
                         className="button"
                         href={`/api/documents/${doc.id}`}
                         download

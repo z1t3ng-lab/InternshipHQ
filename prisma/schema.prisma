@@ -34,6 +34,8 @@ model Application {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   activities       Activity[]
+  interviews       Interview[]
+  statusEvents     StatusEvent[]
 
   @@index([status])
 }
@@ -62,4 +64,54 @@ model Activity {
   message       String
   createdAt     DateTime    @default(now())
   @@index([applicationId, createdAt])
+}
+
+model Interview {
+  id String @id @default(cuid())
+  applicationId String
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  title String
+  startAt DateTime
+  timeZone String
+  duration Int @default(60)
+  interviewer String @default("")
+  location String @default("")
+  meetingUrl String @default("")
+  preparation String @default("")
+  notes String @default("")
+  state String @default("Scheduled")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([startAt])
+}
+
+model StatusEvent {
+  id String @id @default(cuid())
+  applicationId String
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  status String
+  occurredAt DateTime @default(now())
+  @@index([applicationId, occurredAt])
+}
+
+model EmailReview {
+  id String @id @default(cuid())
+  fingerprint String @unique
+  subject String
+  sender String @default("")
+  body String
+  sourceUrl String @default("")
+  evidence String @default("")
+  proposedStatus String @default("")
+  state String @default("pending")
+  applicationId String @default("")
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+}
+
+model GmailMessage {
+  key String @id
+  messageId String
+  reviewId String @default("")
+  processedAt DateTime @default(now())
 }
