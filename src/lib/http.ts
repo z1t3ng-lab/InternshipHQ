@@ -10,13 +10,16 @@ export class HttpError extends Error {
     super(message);
   }
 }
-export async function readJson(request: Request) {
+export function checkOrigin(request: Request) {
   const origin = request.headers.get("origin");
   // Next may normalize request.url to its internal hostname. The HTTP Host
   // header retains the browser-facing host and port, including localhost aliases.
   const host = request.headers.get("host") || new URL(request.url).host;
   if (origin && new URL(origin).host !== host)
     throw new HttpError(403, "This request must come from InternshipHQ.");
+}
+export async function readJson(request: Request) {
+  checkOrigin(request);
   if (!request.headers.get("content-type")?.includes("application/json"))
     throw new HttpError(415, "Expected JSON.");
   const body = await request.text();

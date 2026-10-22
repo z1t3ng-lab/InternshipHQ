@@ -3,9 +3,12 @@ import {
   applicationSchema,
   isDuplicate,
   type ApplicationInput,
+  FIELD_LABELS,
 } from "./domain";
 import { HttpError } from "./http";
 import { z } from "zod";
+import { resolveDocuments } from "./documents";
+import { DOCUMENT_SLOTS } from "./document-types";
 export const includeActivities = {
   activities: { orderBy: { createdAt: "desc" as const } },
 };
@@ -18,6 +21,7 @@ export async function listApplications() {
 export async function createApplication(raw: unknown, allowDuplicate = false) {
   const data = applicationSchema.parse(raw);
   return db.$transaction(async (tx) => {
+    await resolveDocuments(tx, data);
     const matches = (await tx.application.findMany()).filter((a) =>
       isDuplicate(data, a),
     );
@@ -58,6 +62,7 @@ export async function updateApplication(
   return db.$transaction(async (tx) => {
     const before = await tx.application.findUniqueOrThrow({ where: { id } });
     const data = applicationSchema.parse({ ...before, ...patch });
+    await resolveDocuments(tx, data, applicationSchema.parse(before));
     if (
       ["company", "position", "jobUrl"].some(
         (k) =>
@@ -103,8 +108,15 @@ export async function updateApplication(
     if (other.length)
       activities.push({
         type: "edited",
-        message: `Updated ${other.join(", ")}`,
+        message: `Updated ${other.map((k) => FIELD_LABELS[k as keyof ApplicationInput]).join(", ")}`,
       });
+    for (const slot of DOCUMENT_SLOTS) {
+      if (before[slot.id] !== data[slot.id])
+        activities.push({
+          type: "documents",
+          message: `${slot.label}: ${before[slot.snapshot] || "None"} → ${data[slot.snapshot] || "None"}`,
+        });
+    }
     return tx.application.update({
       where: { id },
       data: { ...data, activities: { create: activities } },

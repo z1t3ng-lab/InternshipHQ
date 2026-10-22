@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Columns3,
+  FolderOpen,
   LayoutDashboard,
   ListTodo,
   Mail,
@@ -28,18 +29,21 @@ import { ApplicationsView } from "./applications-view";
 import { ApplicationForm, CompleteAction } from "./application-form";
 import { ImportView } from "./import-view";
 import { request } from "./ui";
+import { DocumentsView } from "./documents-view";
 
 const NAV = [
   { key: "dashboard", label: "Overview", Icon: LayoutDashboard },
   { key: "applications", label: "Applications", Icon: BriefcaseBusiness },
   { key: "board", label: "Board view", Icon: Columns3 },
   { key: "today", label: "Next actions", Icon: ListTodo },
+  { key: "documents", label: "Documents", Icon: FolderOpen },
 ];
 const TITLES: Record<string, string> = {
   dashboard: "Overview",
   applications: "Applications",
   board: "Board view",
   today: "Next actions",
+  documents: "Documents",
   import: "Import & export",
   email: "Email integration",
 };
@@ -81,7 +85,8 @@ export function Tracker({ demo }: { demo: boolean }) {
     // The macOS menu uses the same editor as the on-screen Add button.
     const openNewApplication = () => setEditing("new");
     window.addEventListener("internshiphq:add", openNewApplication);
-    return () => window.removeEventListener("internshiphq:add", openNewApplication);
+    return () =>
+      window.removeEventListener("internshiphq:add", openNewApplication);
   }, []);
   useEffect(() => {
     const sync = () => {
@@ -386,6 +391,7 @@ export function Tracker({ demo }: { demo: boolean }) {
                 />
               )}
               {view === "today" && <TodayPage {...props} />}
+              {view === "documents" && <DocumentsView records={records} />}
               {view === "import" && <ImportView onImported={refresh} />}
               {view === "email" && <EmailView />}
             </>

@@ -25,6 +25,10 @@ model Application {
   contactEmail     String   @default("")
   resume           String   @default("")
   coverLetter      String   @default("")
+  transcript       String   @default("")
+  resumeDocumentId String   @default("")
+  letterDocumentId String   @default("")
+  transcriptDocumentId String @default("")
   notes            String   @default("")
   sourceEmailUrl   String   @default("")
   createdAt        DateTime @default(now())
@@ -32,6 +36,22 @@ model Application {
   activities       Activity[]
 
   @@index([status])
+}
+
+model Document {
+  id         String   @id @default(cuid())
+  name       String
+  version    String
+  kind       String
+  fileName   String
+  mimeType   String
+  size       Int
+  sha256     String
+  content    Bytes
+  archived   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([kind, archived])
 }
 
 model Activity {

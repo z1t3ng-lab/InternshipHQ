@@ -65,6 +65,16 @@ The project uses Next's supported Webpack mode to avoid Turbopack's additional l
 - CSV column mapping, server-validated preview, clear import/skip reasons, export, and reimport.
 - Desktop and mobile layouts, native modal focus trapping, focus restoration, Escape to close, visible focus, labeled controls, skip link, reduced-motion support, and status feedback.
 
+### Document library and application versions
+
+Open **Documents** in the sidebar to upload a CV/resume, cover letter, motivation letter, or grade transcript. Give it a descriptive name and a version label (for example, `Software engineering CV` / `v2 · October 2026`). PDF and Word DOCX files are supported, up to **10 MB per file**. Each upload creates an immutable version with its original filename, upload time, size, and SHA-256 checksum. Download retrieves the original bytes.
+
+When adding or editing an application, use **Documents used** to select its CV, cover/motivation letter, and transcript. You can also upload a new version directly in that form; it is selected automatically. Uploading a newer version never replaces the file on an older application. Document changes are recorded in the application's activity history. Existing filename-only records remain editable.
+
+Archive a version to hide it from new applications. Existing applications keep their selection and download access. Enable **Show archived** to restore it. Documents stay in the local SQLite database, alongside applications; `npm run db:backup` includes their contents. Code updates are synced to GitHub as part of project work. **Uploaded files and database backups remain local and are excluded from Git.**
+
+CSV exports include document labels and IDs, but not uploaded file contents. Reimporting into the same document library preserves the links. If a referenced version is absent, the importer keeps its descriptive label and clears the unavailable link. Use a SQLite backup to restore the full document library and links on another computer.
+
 ### Definitions and dates
 
 - **Total:** all stored applications.
@@ -114,7 +124,8 @@ Export columns:
 ```text
 company, position, jobUrl, location, arrangement, term, deadline,
 dateApplied, status, priority, nextAction, nextActionDue, contactName,
-contactEmail, resume, coverLetter, notes, sourceEmailUrl,
+contactEmail, resume, coverLetter, transcript, resumeDocumentId,
+letterDocumentId, transcriptDocumentId, notes, sourceEmailUrl,
 id, createdAt, updatedAt, activityHistory, formatVersion
 ```
 
@@ -200,4 +211,4 @@ The client loads applications through `/api/applications`. It computes small per
 
 Gmail is **not implemented or connected**. `src/lib/email/provider.ts` defines the future read-only provider and suggestion-parser interfaces. [The phase-two notes](docs/email-integration.md) describe OAuth, evidence, review, idempotency, and scheduling. There is no fake Connect Gmail button, simulated email check, or dependency on ChatGPT's Gmail connection.
 
-This is a one-user laptop application, without authentication, multi-device synchronization, or public deployment. Keep it bound to localhost. Board movement uses accessible native selects; drag-and-drop is intentionally absent. Resume and cover-letter fields store filenames/versions, not uploaded attachments. Import appends or skips; it never overwrites records. Calendar dates and blank values are preserved, and no employer information is fetched or invented. Existing open tabs need a refresh to pick up changes made in another tab. The app does not send email or schedule interviews.
+This is a one-user laptop application, without authentication, multi-device synchronization, or public deployment. Keep it bound to localhost. Board movement uses accessible native selects; drag-and-drop is intentionally absent. Uploaded documents are stored locally in SQLite; code updates are published to GitHub, and personal documents stay local. Import appends or skips; it never overwrites records. Calendar dates and blank values are preserved, and no employer information is fetched or invented. Existing open tabs need a refresh to pick up changes made in another tab. The app does not send email or schedule interviews.

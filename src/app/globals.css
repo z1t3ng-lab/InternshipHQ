@@ -3130,3 +3130,221 @@ main {
     padding-top: 25px;
   }
 }
+
+/* Versioned local document library. */
+.documents-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+.document-local {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.document-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.document-filters .field {
+  flex: 1 1 180px;
+  margin-bottom: 0;
+}
+.document-archive-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 12px;
+}
+.document-list {
+  display: grid;
+  gap: 14px;
+}
+.document-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px;
+}
+.document-file-icon {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--accent-soft, #efedfa);
+  color: var(--accent, #5d50d5);
+}
+.document-card-info {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.document-card-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.document-card-title h2 {
+  font-size: 15px;
+  margin: 0;
+}
+.document-version {
+  border: 1px solid #d8d3ec;
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.document-card-info p {
+  font-size: 12px;
+  margin: 8px 0;
+  color: var(--muted);
+}
+.document-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.document-card-actions .button {
+  min-height: 38px;
+}
+.document-upload-card {
+  padding: 24px;
+}
+.document-upload h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+.document-upload > p {
+  margin: 0 0 20px;
+}
+.document-upload fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.document-upload input[type="file"] {
+  font-size: 12px;
+  padding: 10px;
+  min-height: 44px;
+}
+.document-upload .button {
+  min-height: 44px;
+}
+.document-success {
+  color: #24643e;
+  background: #f0f8f2;
+  border: 1px solid #cde5d3;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+  margin: 14px 0;
+}
+.document-retention {
+  padding-top: 20px;
+  margin-top: 22px;
+  border-top: 1px solid var(--line, #e6e3ed);
+  line-height: 1.7;
+}
+.document-empty {
+  text-align: center;
+  padding: 60px 30px;
+}
+.document-empty > svg {
+  color: var(--accent, #5d50d5);
+  margin-bottom: 16px;
+}
+.document-empty h2 {
+  font-size: 19px;
+  margin: 0 0 12px;
+}
+.document-empty p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.8;
+  max-width: 370px;
+  margin: auto;
+}
+.application-documents {
+  margin: 20px 0 8px;
+  padding: 20px 0;
+  border-block: 1px solid #e6e3ed;
+}
+.document-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.document-section-heading h3 {
+  font-size: 14px;
+  margin: 0;
+}
+.application-documents > p {
+  margin: 8px 0 18px;
+}
+.document-selectors {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.document-selectors .text-link {
+  overflow-wrap: anywhere;
+}
+.application-documents .document-upload {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  background: #f7f6fb;
+}
+.application-documents .document-upload h2 {
+  font-size: 14px;
+}
+@media (max-width: 1200px) {
+  .documents-layout {
+    grid-template-columns: minmax(0, 1fr) 290px;
+    gap: 18px;
+  }
+  .document-card {
+    flex-wrap: wrap;
+  }
+  .document-card-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+}
+@media (max-width: 900px) {
+  .documents-layout {
+    grid-template-columns: 1fr;
+  }
+  .document-upload-card {
+    order: -1;
+  }
+}
+@media (max-width: 600px) {
+  .document-selectors {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .document-card {
+    padding: 18px;
+  }
+  .document-card-title {
+    align-items: flex-start;
+  }
+  .document-card-actions .button {
+    min-height: 44px;
+  }
+  .document-local {
+    display: none;
+  }
+}

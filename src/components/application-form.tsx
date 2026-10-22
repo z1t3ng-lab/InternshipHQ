@@ -22,6 +22,7 @@ import {
   type ApplicationRecord,
 } from "@/lib/domain";
 import { Modal, request, StatusBadge } from "./ui";
+import { ApplicationDocuments } from "./documents-view";
 
 export function ApplicationForm({
   record,
@@ -248,6 +249,14 @@ export function ApplicationForm({
             {more ? "Hide additional details" : "Add dates, links, and more"}
             <span>Optional</span>
           </button>
+          <ApplicationDocuments
+            data={data}
+            errors={errors}
+            onChange={(patch) => {
+              setData((current) => ({ ...current, ...patch }));
+              setDuplicate(false);
+            }}
+          />
           {more && (
             <>
               <h3 className="form-section">The opportunity</h3>
@@ -279,8 +288,24 @@ export function ApplicationForm({
               <div className="form-grid">
                 {field("contactName")}
                 {field("contactEmail", "email")}
-                {field("resume", "text", "e.g. resume-software-v2.pdf")}
-                {field("coverLetter", "text", "e.g. cover-letter-maple.pdf")}
+                {!data.resumeDocumentId &&
+                  field(
+                    "resume",
+                    "text",
+                    "Optional filename without an upload",
+                  )}
+                {!data.letterDocumentId &&
+                  field(
+                    "coverLetter",
+                    "text",
+                    "Optional filename without an upload",
+                  )}
+                {!data.transcriptDocumentId &&
+                  field(
+                    "transcript",
+                    "text",
+                    "Optional filename without an upload",
+                  )}
                 {field(
                   "sourceEmailUrl",
                   "url",

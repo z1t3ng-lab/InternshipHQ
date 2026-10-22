@@ -68,6 +68,10 @@ export const applicationSchema = z.object({
     .default(""),
   resume: text,
   coverLetter: text,
+  transcript: text,
+  resumeDocumentId: z.string().max(100).default(""),
+  letterDocumentId: z.string().max(100).default(""),
+  transcriptDocumentId: z.string().max(100).default(""),
   notes: text,
   sourceEmailUrl: url,
 });
@@ -109,6 +113,10 @@ export const FIELD_LABELS: Record<keyof ApplicationInput, string> = {
   contactEmail: "Contact email",
   resume: "Resume version / filename",
   coverLetter: "Cover letter version / filename",
+  transcript: "Transcript version / filename",
+  resumeDocumentId: "CV document ID",
+  letterDocumentId: "Letter document ID",
+  transcriptDocumentId: "Transcript document ID",
   notes: "Notes",
   sourceEmailUrl: "Source email URL",
 };

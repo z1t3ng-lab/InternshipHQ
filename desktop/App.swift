@@ -212,14 +212,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
     }
     func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
         let panel = NSOpenPanel(); panel.canChooseDirectories = false; panel.allowsMultipleSelection = parameters.allowsMultipleSelection
-        panel.allowedContentTypes = [.commaSeparatedText, .plainText]; panel.message = "Choose the CSV spreadsheet you want to import."
+        panel.allowedContentTypes = [.commaSeparatedText, .plainText, .pdf, UTType(filenameExtension: "docx")!]; panel.message = "Choose a CSV spreadsheet, PDF, or Word document."
         panel.beginSheetModal(for: window) { result in completionHandler(result == .OK ? panel.urls : nil) }
     }
     func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) { track(download) }
     func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) { track(download) }
     func track(_ download: WKDownload) { activeDownloads.append(download); download.delegate = self }
     func download(_ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String, completionHandler: @escaping (URL?) -> Void) {
-        let panel = NSSavePanel(); panel.nameFieldStringValue = suggestedFilename; panel.allowedContentTypes = [.commaSeparatedText]; panel.canCreateDirectories = true
+        let panel = NSSavePanel(); panel.nameFieldStringValue = suggestedFilename; panel.allowedContentTypes = [UTType(filenameExtension: (suggestedFilename as NSString).pathExtension) ?? .data]; panel.canCreateDirectories = true
         panel.beginSheetModal(for: window) { result in
             let url = result == .OK ? panel.url : nil
             guard let url = url else { completionHandler(nil); return }
@@ -247,7 +247,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
         if let temporary = downloadFiles.removeValue(forKey: ObjectIdentifier(download)) { try? FileManager.default.removeItem(at: temporary) }
         if (error as NSError).code != NSURLErrorCancelled { showDownloadError(error) }
     }
-    func showDownloadError(_ error: Error) { let alert = NSAlert(); alert.messageText = "The CSV could not be saved"; alert.informativeText = error.localizedDescription; alert.beginSheetModal(for: window) }
+    func showDownloadError(_ error: Error) { let alert = NSAlert(); alert.messageText = "The file could not be saved"; alert.informativeText = error.localizedDescription; alert.beginSheetModal(for: window) }
 
     @objc func retry() { if server?.isRunning == true { if let url = baseURL { webView.load(URLRequest(url: url)) } } else { startServer() } }
     @objc func reload() { if baseURL != nil { webView.reload() } else { retry() } }

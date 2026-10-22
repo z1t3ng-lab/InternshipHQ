@@ -3,12 +3,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
 import Database from "better-sqlite3";
+import { migrateTestDatabase } from "./migrate-test-db";
 const dir = mkdtempSync(join(tmpdir(), "internshiphq-browser-"));
 const path = join(dir, "test.db");
 const db = new Database(path);
-db.exec(
-  readFileSync("prisma/migrations/202610210001_init/migration.sql", "utf8"),
-);
+migrateTestDatabase(db);
 db.close();
 const child = spawn(
   process.execPath,

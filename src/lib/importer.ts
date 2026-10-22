@@ -3,6 +3,7 @@ import { parseCSV, previewImport, type ColumnMapping } from "./csv";
 import { HttpError } from "./http";
 import { includeActivities } from "./applications";
 import type { ApplicationRecord } from "./domain";
+import { resolveDocuments } from "./documents";
 export async function runImport(
   csv: string,
   mapping: ColumnMapping,
@@ -33,6 +34,7 @@ export async function runImport(
         };
       const usedIds = new Set(existing.map((a) => a.id));
       for (const r of accepted) {
+        await resolveDocuments(tx, r.data!, undefined, true);
         const preserveId = r.id && !usedIds.has(r.id) ? r.id : undefined;
         const saved = await tx.application.create({
           data: {

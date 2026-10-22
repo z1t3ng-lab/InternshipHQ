@@ -5,13 +5,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import Database from "better-sqlite3";
+import { migrateTestDatabase } from "../scripts/migrate-test-db";
 test("real SQLite CRUD, partial status updates, action history, import policy, restart persistence and cascade deletion", async () => {
   const dir = mkdtempSync(join(tmpdir(), "internshiphq-test-"));
   process.env.DATABASE_URL = `file:${join(dir, "test.db")}`;
   const sqlite = new Database(join(dir, "test.db"));
-  sqlite.exec(
-    readFileSync("prisma/migrations/202610210001_init/migration.sql", "utf8"),
-  );
+  migrateTestDatabase(sqlite);
   sqlite.close();
   const { db } = await import("../src/lib/db");
   const {
