@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Application {
+  id               String   @id @default(cuid())
+  company          String
+  position         String
+  jobUrl           String   @default("")
+  location         String   @default("")
+  arrangement      String   @default("Unspecified")
+  term             String   @default("")
+  deadline         String   @default("")
+  dateApplied      String   @default("")
+  status           String   @default("Saved")
+  priority         String   @default("Medium")
+  nextAction       String   @default("")
+  nextActionDue    String   @default("")
+  contactName      String   @default("")
+  contactEmail     String   @default("")
+  resume           String   @default("")
+  coverLetter      String   @default("")
+  notes            String   @default("")
+  sourceEmailUrl   String   @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  activities       Activity[]
+
+  @@index([status])
+}
+
+model Activity {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  type          String
+  message       String
+  createdAt     DateTime    @default(now())
+  @@index([applicationId, createdAt])
+}

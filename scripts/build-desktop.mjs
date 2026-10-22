@@ -1,0 +1,23 @@
+import { execFileSync } from "node:child_process";
+import { copyFileSync, mkdirSync, writeFileSync, existsSync, rmSync } from "node:fs";
+import { resolve } from "node:path";
+
+if (process.platform !== "darwin") throw new Error("The native launcher is for macOS.");
+const root = process.cwd();
+const output = resolve("desktop/dist");
+const app = resolve(output, "InternshipHQ.app");
+if (existsSync(app)) rmSync(app, { recursive: true });
+mkdirSync(resolve(app, "Contents/MacOS"), { recursive: true });
+mkdirSync(resolve(app, "Contents/Resources"), { recursive: true });
+const cache = resolve(output, "module-cache");
+mkdirSync(cache, { recursive: true });
+const run = (file, args) => execFileSync(file, args, { stdio: "inherit" });
+run("/usr/bin/xcrun", ["swiftc", "-swift-version", "5", "-module-cache-path", cache, "-O", "desktop/App.swift", "-o", resolve(app, "Contents/MacOS/InternshipHQ"), "-framework", "Cocoa", "-framework", "WebKit"]);
+run("/usr/bin/xcrun", ["swiftc", "-module-cache-path", cache, "desktop/make-icon.swift", "-o", resolve(output, "make-icon")]);
+run(resolve(output, "make-icon"), [resolve(output, "AppIcon.iconset")]);
+run("/usr/bin/iconutil", ["-c", "icns", resolve(output, "AppIcon.iconset"), "-o", resolve(app, "Contents/Resources/AppIcon.icns")]);
+copyFileSync("desktop/Info.plist", resolve(app, "Contents/Info.plist"));
+writeFileSync(resolve(app, "Contents/Resources/launcher.json"), JSON.stringify({ projectPath: root, nodePath: process.execPath }, null, 2));
+run("/usr/bin/codesign", ["--force", "--sign", "-", app]);
+run("/usr/bin/codesign", ["--verify", "--deep", "--strict", app]);
+console.log(`Desktop app ready: ${app}`);

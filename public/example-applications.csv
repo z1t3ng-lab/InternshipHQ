@@ -1,0 +1,3 @@
+company,position,location,arrangement,term,status,priority,deadline,dateApplied,nextAction,nextActionDue,notes
+Fictional Maple Labs,Software Engineering Intern,Toronto,Hybrid,Summer 2027,Saved,High,,,Tailor resume,,"Fictional example, replace before importing."
+Fictional Orbit Studio,Design Intern,,Remote,,Preparing,Medium,,,,,"Example with missing optional fields."
