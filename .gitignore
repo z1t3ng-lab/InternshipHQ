@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.next-demo/
+.env
+.env.*
+!.env.example
+*.db
+*.db-*
+*.sqlite*
+backups/
+src/generated/
+*.tsbuildinfo
+next-env.d.ts
+desktop/dist/
+test-results/
+playwright-report/
+.DS_Store
