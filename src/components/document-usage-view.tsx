@@ -45,7 +45,6 @@ export function DocumentUsageView({
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">KNOW EXACTLY WHAT YOU SENT</div>
           <h1>Document usage</h1>
           <p>
             Find the applications linked to each CV, letter, or transcript

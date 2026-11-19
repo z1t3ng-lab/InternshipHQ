@@ -19,12 +19,10 @@ export function InsightsView({
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">SEE HOW YOUR SEARCH IS MOVING</div>
           <h1>Application insights</h1>
-          <p>Progress and timing from your recorded application history.</p>
         </div>
       </div>
-      <section className="card feature-panel">
+      <section className="insight-filters feature-panel">
         <div className="feature-toolbar">
           <label className="field">
             Applied from
@@ -56,70 +54,78 @@ export function InsightsView({
         </div>
         <p className="muted">
           {stats.total} applications in this view. Date filters use the
-          application’s date applied; records without that date are excluded
+          application’s date applied. Records without that date are excluded
           when a filter is set.
         </p>
       </section>
-      <section className="card feature-panel">
-        <h2>Application funnel</h2>
-        <p className="muted">
-          Each percentage is out of {stats.submitted} submitted applications.
-          Responses include assessments, interviews, offers, and rejections.
-          Stages may be skipped.
-        </p>
-        <div className="funnel">
-          {stats.steps.map((step) => (
-            <div className="funnel-row" key={step.label}>
-              <div className="feature-row">
-                <span>{step.label}</span>
-                <strong>
-                  {step.count}{" "}
-                  <span className="muted">
-                    / {stats.submitted} ·{" "}
-                    {stats.submitted
-                      ? Math.round((step.count / stats.submitted) * 100)
-                      : 0}
-                    %
-                  </span>
-                </strong>
+      <div className="insight-spread">
+        <section className="card feature-panel">
+          <h2>Application funnel</h2>
+          <p className="muted">
+            Each percentage is out of {stats.submitted} submitted applications.
+            Responses include assessments, interviews, offers, and rejections.
+            Stages may be skipped.
+          </p>
+          <div className="funnel">
+            {stats.steps.map((step) => (
+              <div className="funnel-row" key={step.label}>
+                <div className="feature-row">
+                  <span>{step.label}</span>
+                  <strong>
+                    {step.count}{" "}
+                    <span className="muted">
+                      / {stats.submitted} ·{" "}
+                      {stats.submitted
+                        ? Math.round((step.count / stats.submitted) * 100)
+                        : 0}
+                      %
+                    </span>
+                  </strong>
+                </div>
+                <div className="funnel-track" aria-hidden="true">
+                  <span
+                    style={{
+                      width: `${stats.submitted ? (step.count / stats.submitted) * 100 : 0}%`,
+                    }}
+                  />
+                </div>
               </div>
-              <div className="funnel-track" aria-hidden="true">
-                <span
-                  style={{
-                    width: `${stats.submitted ? (step.count / stats.submitted) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-            </div>
+            ))}
+          </div>
+          <details className="calculation-note">
+            <summary>How stages are counted</summary>
+            <p>
+              Current status and recorded history determine each stage. An offer
+              can skip the interview stage. A rejection or withdrawal requires a
+              date applied or prior submission evidence to count toward
+              submissions.
+            </p>
+          </details>
+        </section>
+        <div className="timing-grid">
+          {stats.timings.map((t) => (
+            <section className="timing-entry" key={t.label}>
+              <h2>{t.label}</h2>
+              <p className="timing-value">
+                {t.median === null ? "—" : `${t.median} days`}
+              </p>
+              <p className="muted">
+                Median · {t.count} dated sample{t.count === 1 ? "" : "s"}
+              </p>
+            </section>
           ))}
         </div>
-        <p className="small muted">
-          A stage is counted when the current status or recorded history shows
-          it. An offer alone does not prove that an interview occurred.
-          Rejections and withdrawals without a date or prior submission evidence
-          do not establish when an application was sent.
-        </p>
-      </section>
-      <div className="timing-grid">
-        {stats.timings.map((t) => (
-          <section className="card feature-panel" key={t.label}>
-            <h2>{t.label}</h2>
-            <p className="timing-value">
-              {t.median === null ? "—" : `${t.median} days`}
-            </p>
-            <p className="muted">
-              Median · {t.count} dated sample{t.count === 1 ? "" : "s"}
-            </p>
-          </section>
-        ))}
       </div>
-      <p className="small muted timing-note">
-        Timing runs from Date applied to the first recorded status change for
-        that stage, in America/Toronto calendar days. It measures when you
-        recorded the change, which may differ from the employer’s response time.
-        Imported or initially entered statuses have no assumed response date.
-        Small samples describe your records; they do not predict outcomes.
-      </p>
+      <details className="calculation-note timing-note">
+        <summary>How timing is calculated</summary>
+        <p>
+          Timing runs from Date applied to the first recorded status change for
+          that stage, in America/Toronto calendar days. It measures when you
+          recorded the change, which may differ from the employer’s response
+          time. Imported or initially entered statuses have no assumed response
+          date. Small samples describe your recorded experience.
+        </p>
+      </details>
       <section className="card feature-panel">
         <h2>Current status</h2>
         <div className="status-totals">

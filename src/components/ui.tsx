@@ -10,7 +10,7 @@ export const STATUS_COLORS: Record<Status, string> = {
   Interview: "indigo",
   Offer: "green",
   Rejected: "red",
-  Withdrawn: "slate",
+  Withdrawn: "stone",
 };
 export function StatusBadge({ status }: { status: Status }) {
   return (
@@ -92,25 +92,62 @@ export function Modal({
     </dialog>
   );
 }
+export function DateStamp({
+  value,
+  timeZone = "UTC",
+}: {
+  value: string;
+  timeZone?: string;
+}) {
+  const date = new Date(value.length === 10 ? value + "T12:00:00Z" : value);
+  const month = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    month: "short",
+  }).format(date);
+  const day = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    day: "numeric",
+  }).format(date);
+  return (
+    <time className="date-stamp" dateTime={value}>
+      <span className="sr-only">
+        {new Intl.DateTimeFormat("en-CA", {
+          timeZone,
+          dateStyle: "full",
+        }).format(date)}
+      </span>
+      <span aria-hidden="true">{month}</span>
+      <strong aria-hidden="true">{day}</strong>
+    </time>
+  );
+}
 export function EmptyState({
-  title = "Your next chapter starts here",
-  text = "Add an internship you have your eye on. We’ll help you keep every opportunity and next step in one place.",
+  title = "No applications yet",
+  text = "Start with a company and a position. You can fill in the details later.",
   onAdd,
+  reset,
 }: {
   title?: string;
   text?: string;
   onAdd: () => void;
+  reset?: () => void;
 }) {
   return (
     <div className="empty-state">
-      <div className="empty-icon">
-        <BriefcaseBusiness size={27} strokeWidth={1.6} />
+      <BriefcaseBusiness size={28} strokeWidth={1.4} aria-hidden="true" />
+      <div>
+        <h3>{title}</h3>
+        <p>{text}</p>
       </div>
-      <h3>{title}</h3>
-      <p>{text}</p>
-      <button className="button primary" onClick={onAdd}>
-        <Plus size={17} />
-        Add application
+      <button className="button" onClick={reset ?? onAdd}>
+        {reset ? (
+          "Clear filters"
+        ) : (
+          <>
+            <Plus size={16} />
+            Add application
+          </>
+        )}
       </button>
     </div>
   );

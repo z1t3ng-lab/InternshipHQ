@@ -105,12 +105,9 @@ export function EmailView({
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">LESS ADMIN, WITH YOU IN CONTROL</div>
           <h1>Email-assisted updates</h1>
-          <p>Collect messages, review the evidence, and choose what changes.</p>
         </div>
       </div>
-      <GmailConnection onImported={load} />
       {error && !review && (
         <p className="notice error" role="alert">
           {error}
@@ -257,6 +254,7 @@ export function EmailView({
           </div>
         )}
       </section>
+      <GmailConnection onImported={load} />
       {review && (
         <Modal
           title={

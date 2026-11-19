@@ -12,7 +12,7 @@ test("create, validate, edit, status history, complete action, duplicate warning
 }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "A little progress, every day." }),
+    page.getByRole("heading", { name: "Application overview" }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Add application", exact: true })
@@ -92,7 +92,7 @@ test("create, validate, edit, status history, complete action, duplicate warning
   await dialog.getByRole("button", { name: "Delete", exact: true }).click();
   await dialog.getByRole("button", { name: "Yes, delete application" }).click();
   await expect(dialog).not.toBeVisible();
-  await expect(page.getByText("Your next chapter starts here")).toBeVisible();
+  await expect(page.getByText("No applications yet")).toBeVisible();
 });
 
 test("filter combinations, board movement, counts, import preview and CSV export", async ({
@@ -142,9 +142,7 @@ test("filter combinations, board movement, counts, import preview and CSV export
   ).toBeVisible();
   await page.getByLabel("Sort applications").selectOption("company");
   await page.getByRole("button", { name: "Reset filters & sort" }).click();
-  await expect(
-    page.getByText("3 of 3 applications in your workspace"),
-  ).toBeVisible();
+  await expect(page.getByText("3 applications", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Board", exact: true }).click();
   await page
     .getByRole("combobox", { name: "Status for Fictional Alpha Intern" })
@@ -153,12 +151,15 @@ test("filter combinations, board movement, counts, import preview and CSV export
     "Moved Fictional Alpha to Interview",
   );
   await page.getByRole("link", { name: "Overview" }).click();
-  const stats = page.locator(".stat-card");
-  await expect(stats.nth(0).locator("strong")).toHaveText("03");
-  await expect(stats.nth(1).locator("strong")).toHaveText("02");
-  await expect(stats.nth(2).locator("strong")).toHaveText("01");
-  await expect(stats.nth(3).locator("strong")).toHaveText("01");
-  await expect(stats.nth(4).locator("strong")).toHaveText("01");
+  const totals = page.getByLabel("Application totals");
+  await expect(totals.locator("dt")).toHaveText([
+    "Total applications",
+    "Active",
+    "Submitted",
+    "At interview",
+    "Offers",
+  ]);
+  await expect(totals.locator("dd")).toHaveText(["3", "2", "1", "1", "1"]);
   await page.getByRole("link", { name: "Import & export" }).click();
   await page.getByLabel("Upload CSV file").setInputFiles({
     name: "migration.csv",
@@ -191,7 +192,7 @@ test("keyboard navigation, dialog focus and accessibility on desktop and mobile"
 }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "A little progress, every day." }),
+    page.getByRole("heading", { name: "Application overview" }),
   ).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(
@@ -244,9 +245,22 @@ test("keyboard navigation, dialog focus and accessibility on desktop and mobile"
       await page.getByRole("button", { name: "Open navigation" }).click();
       await page.getByRole("link", { name: /^Applications/ }).click();
       await expect(
-        page.getByRole("heading", { name: /Your applications/ }),
+        page.getByRole("heading", { name: "Applications", exact: true }),
       ).toBeVisible();
-      await page.getByRole("button", { name: "Open navigation" }).click();
+      const filters = page.getByRole("button", {
+        name: "Filters & sort",
+        exact: true,
+      });
+      await expect(page.getByLabel("Filter status")).toBeHidden();
+      await filters.click();
+      await page.getByLabel("Filter status").selectOption("Interview");
+      await expect(filters).toHaveAttribute("aria-expanded", "true");
+      await filters.click();
+      const menu = page.getByRole("button", { name: "Open navigation" });
+      await menu.click();
+      await page.keyboard.press("Escape");
+      await expect(menu).toBeFocused();
+      await menu.click();
       await page.getByRole("link", { name: "Overview" }).click();
       const mobile = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
@@ -308,16 +322,18 @@ test("populated screens remain accessible and fit mobile; duplicate warning keep
     expect(result.ok()).toBeTruthy();
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
-  for (const view of [
-    "dashboard",
-    "applications",
-    "board",
-    "today",
-    "import",
-    "email",
-  ]) {
+  for (const [view, title] of Object.entries({
+    dashboard: "Application overview",
+    applications: "Applications",
+    board: "Application board",
+    today: "Next actions",
+    import: "Import & export",
+    email: "Email-assisted updates",
+  })) {
     await page.goto(`/#${view}`);
-    await expect(page.locator("main h1")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: title, exact: true }),
+    ).toBeVisible();
     const audit = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
       .analyze();
@@ -387,7 +403,5 @@ test("populated screens remain accessible and fit mobile; duplicate warning keep
     .getByRole("button", { name: "Save as separate application" })
     .click();
   await expect(dialog).not.toBeVisible();
-  await expect(
-    page.getByText("9 of 9 applications in your workspace"),
-  ).toBeVisible();
+  await expect(page.getByText("9 applications", { exact: true })).toBeVisible();
 });

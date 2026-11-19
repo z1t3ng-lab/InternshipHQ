@@ -40,6 +40,7 @@ export function ApplicationsView({
   onStatus,
 }: Props) {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [pending, setPending] = useState<string[]>([]);
   const filtered = filterApplications(records, filters);
   const change = (key: keyof Filters, value: string) =>
@@ -51,6 +52,10 @@ export function ApplicationsView({
     filters.term,
     filters.arrangement,
   ].some(Boolean);
+  const canReset =
+    filterActive ||
+    filters.sort !== DEFAULT_FILTERS.sort ||
+    filters.direction !== DEFAULT_FILTERS.direction;
   const statusControl = (a: ApplicationRecord) => (
     <select
       className={`status-select ${STATUS_COLORS[a.status]}`}
@@ -74,14 +79,7 @@ export function ApplicationsView({
   return (
     <>
       <div className="page-heading">
-        <div>
-          <div className="eyebrow">ROOM FOR YOUR AMBITION</div>
-          <h1>
-            Your applications
-            <span className="heading-count">{records.length}</span>
-          </h1>
-          <p>Every opportunity, from the first save to the final decision.</p>
-        </div>
+        <h1>{board ? "Application board" : "Applications"}</h1>
         <button className="button primary" onClick={onAdd}>
           <Plus size={18} />
           Add application
@@ -107,7 +105,19 @@ export function ApplicationsView({
               </button>
             )}
           </div>
-          <div className="view-toggle">
+          <button
+            className="button mobile-filters"
+            aria-controls="application-filters"
+            aria-expanded={filtersOpen}
+            onClick={() => setFiltersOpen(!filtersOpen)}
+          >
+            <SlidersHorizontal size={16} /> Filters &amp; sort
+          </button>
+          <div
+            className="view-toggle"
+            role="group"
+            aria-label="Application view"
+          >
             <button
               className={!board ? "active" : ""}
               aria-pressed={!board}
@@ -126,7 +136,10 @@ export function ApplicationsView({
             </button>
           </div>
         </div>
-        <div className="filters-row">
+        <div
+          id="application-filters"
+          className={`filters-row ${filtersOpen ? "is-open" : ""}`}
+        >
           <SlidersHorizontal size={16} className="filter-icon" />
           {(
             [
@@ -176,17 +189,19 @@ export function ApplicationsView({
           </button>
         </div>
         <div className="result-summary">
-          <span>
-            {filtered.length} of {records.length} applications
-            {filterActive ? " match your filters" : " in your workspace"}
+          <span aria-live="polite">
+            {filterActive
+              ? `${filtered.length} of ${records.length} applications match your filters`
+              : `${records.length} application${records.length === 1 ? "" : "s"}`}
           </span>
-          <button
-            className="text-link"
-            onClick={() => setFilters(DEFAULT_FILTERS)}
-          >
-            Reset filters & sort
-            <X size={13} />
-          </button>
+          {canReset && (
+            <button
+              className="text-link"
+              onClick={() => setFilters(DEFAULT_FILTERS)}
+            >
+              Reset filters &amp; sort <X size={13} />
+            </button>
+          )}
         </div>
         {!filtered.length ? (
           <EmptyState
@@ -197,9 +212,17 @@ export function ApplicationsView({
                 : undefined
             }
             onAdd={onAdd}
+            reset={
+              records.length ? () => setFilters(DEFAULT_FILTERS) : undefined
+            }
           />
         ) : board ? (
-          <div className="board-grid">
+          <div
+            className="board-grid"
+            role="region"
+            aria-label="Application board by status"
+            tabIndex={0}
+          >
             {STATUSES.map((s) => (
               <section className="board-column" key={s}>
                 <h2>
@@ -213,19 +236,16 @@ export function ApplicationsView({
                     .map((a) => (
                       <article className="board-card" key={a.id}>
                         <button
-                          className="board-card-heading"
+                          className="board-card-title"
                           aria-label={`Open ${a.company} ${a.position}`}
                           onClick={() => onOpen(a)}
                         >
                           <CompanyMark company={a.company} />
-                          <ArrowUpRight size={16} />
-                        </button>
-                        <button
-                          className="board-card-title"
-                          onClick={() => onOpen(a)}
-                        >
-                          <strong>{a.company}</strong>
-                          <span>{a.position}</span>
+                          <span>
+                            <strong>{a.company}</strong>
+                            <span>{a.position}</span>
+                          </span>
+                          <ArrowUpRight size={15} />
                         </button>
                         <div className="board-card-meta">
                           <span
@@ -253,23 +273,33 @@ export function ApplicationsView({
           </div>
         ) : (
           <div className="table-scroll">
-            <table className="applications-table">
-              <thead>
-                <tr>
-                  <th>COMPANY & ROLE</th>
-                  <th>STATUS</th>
-                  <th>PRIORITY</th>
-                  <th>DEADLINE</th>
-                  <th>NEXT ACTION</th>
-                  <th>
+            <table role="table" className="applications-table">
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader">
+                    Company & role
+                  </th>
+                  <th scope="col" role="columnheader">
+                    Status
+                  </th>
+                  <th scope="col" role="columnheader">
+                    Priority
+                  </th>
+                  <th scope="col" role="columnheader">
+                    Deadline
+                  </th>
+                  <th scope="col" role="columnheader">
+                    Next action
+                  </th>
+                  <th scope="col" role="columnheader">
                     <span className="sr-only">Open application</span>
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody role="rowgroup">
                 {filtered.map((a) => (
-                  <tr key={a.id}>
-                    <td>
+                  <tr role="row" key={a.id}>
+                    <td role="cell">
                       <button
                         className="company-cell"
                         onClick={() => onOpen(a)}
@@ -286,15 +316,31 @@ export function ApplicationsView({
                         </span>
                       </button>
                     </td>
-                    <td>{statusControl(a)}</td>
-                    <td>
+                    <td role="cell">
+                      <span className="mobile-field" aria-hidden="true">
+                        Status
+                      </span>
+                      {statusControl(a)}
+                    </td>
+                    <td role="cell">
+                      <span className="mobile-field" aria-hidden="true">
+                        Priority
+                      </span>
                       <span className={`priority ${a.priority.toLowerCase()}`}>
                         <span />
                         {a.priority}
                       </span>
                     </td>
-                    <td>{formatDate(a.deadline, true)}</td>
-                    <td>
+                    <td role="cell">
+                      <span className="mobile-field" aria-hidden="true">
+                        Deadline
+                      </span>
+                      {formatDate(a.deadline, true)}
+                    </td>
+                    <td role="cell">
+                      <span className="mobile-field" aria-hidden="true">
+                        Next action
+                      </span>
                       <span className="cell-action">{a.nextAction || "—"}</span>
                       {a.nextActionDue && (
                         <span className="cell-sub">
@@ -303,7 +349,7 @@ export function ApplicationsView({
                         </span>
                       )}
                     </td>
-                    <td>
+                    <td role="cell">
                       <button
                         className="icon-button"
                         onClick={() => onOpen(a)}

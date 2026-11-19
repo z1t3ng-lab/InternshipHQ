@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { CalendarDays, Plus } from "lucide-react";
 import { type ApplicationRecord } from "@/lib/domain";
 import { localInterviewTime } from "@/lib/interview-time";
-import { request, Modal } from "./ui";
+import { request, Modal, DateStamp } from "./ui";
 type Interview = {
   id: string;
   applicationId: string;
@@ -118,9 +118,7 @@ export function InterviewsView({
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">WALK IN PREPARED</div>
           <h1>Interview planner</h1>
-          <p>Every round, meeting link, and preparation note in one place.</p>
         </div>
         <button
           className="button primary"
@@ -175,55 +173,58 @@ export function InterviewsView({
           {visible.map((i) => {
             const a = records.find((a) => a.id === i.applicationId);
             return (
-              <article key={i.id} className="card feature-panel">
-                <div className="feature-row">
-                  <div>
-                    <span className="badge slate">{i.state}</span>
-                    <h2>{i.title}</h2>
-                    {a && (
-                      <button className="text-link" onClick={() => onOpen(a)}>
-                        {a.company} · {a.position}
-                      </button>
-                    )}
+              <article key={i.id} className="interview-entry">
+                <DateStamp value={i.startAt} timeZone={i.timeZone} />
+                <div className="interview-content">
+                  <div className="feature-row">
+                    <div>
+                      <span className="badge slate">{i.state}</span>
+                      <h2>{i.title}</h2>
+                      {a && (
+                        <button className="text-link" onClick={() => onOpen(a)}>
+                          {a.company} · {a.position}
+                        </button>
+                      )}
+                    </div>
+                    <button className="button" onClick={() => edit(i)}>
+                      Edit interview
+                    </button>
                   </div>
-                  <button className="button" onClick={() => edit(i)}>
-                    Edit interview
-                  </button>
+                  <p className="interview-date">
+                    {new Intl.DateTimeFormat("en-CA", {
+                      timeZone: i.timeZone,
+                      dateStyle: "full",
+                      timeStyle: "short",
+                    }).format(new Date(i.startAt))}
+                  </p>
+                  <p className="muted">
+                    {i.timeZone} · {i.duration} minutes
+                    {i.interviewer && ` · ${i.interviewer}`}
+                  </p>
+                  {i.location && <p>{i.location}</p>}
+                  {i.meetingUrl && (
+                    <a
+                      className="button"
+                      href={i.meetingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Open meeting link
+                    </a>
+                  )}
+                  {i.preparation && (
+                    <div className="preformatted">
+                      <h3>Preparation</h3>
+                      <p>{i.preparation}</p>
+                    </div>
+                  )}
+                  {i.notes && (
+                    <div className="preformatted">
+                      <h3>Notes & follow-up</h3>
+                      <p>{i.notes}</p>
+                    </div>
+                  )}
                 </div>
-                <p className="interview-date">
-                  {new Intl.DateTimeFormat("en-CA", {
-                    timeZone: i.timeZone,
-                    dateStyle: "full",
-                    timeStyle: "short",
-                  }).format(new Date(i.startAt))}
-                </p>
-                <p className="muted">
-                  {i.timeZone} · {i.duration} minutes
-                  {i.interviewer && ` · ${i.interviewer}`}
-                </p>
-                {i.location && <p>{i.location}</p>}
-                {i.meetingUrl && (
-                  <a
-                    className="button"
-                    href={i.meetingUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open meeting link
-                  </a>
-                )}
-                {i.preparation && (
-                  <div className="preformatted">
-                    <h3>Preparation</h3>
-                    <p>{i.preparation}</p>
-                  </div>
-                )}
-                {i.notes && (
-                  <div className="preformatted">
-                    <h3>Notes & follow-up</h3>
-                    <p>{i.notes}</p>
-                  </div>
-                )}
               </article>
             );
           })}

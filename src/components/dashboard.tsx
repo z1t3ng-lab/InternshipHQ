@@ -2,18 +2,10 @@
 import {
   ArrowRight,
   ArrowUpRight,
-  BriefcaseBusiness,
+  CalendarCheck2,
   CalendarDays,
   Check,
-  CheckCheck,
-  CircleCheck,
-  Clock3,
-  ListTodo,
-  MessageSquare,
   Plus,
-  Sparkles,
-  Target,
-  Trophy,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -25,8 +17,13 @@ import {
   type ApplicationRecord,
   type Task,
 } from "@/lib/domain";
-import { CompanyMark, EmptyState, STATUS_COLORS, StatusBadge } from "./ui";
-
+import {
+  CompanyMark,
+  DateStamp,
+  EmptyState,
+  STATUS_COLORS,
+  StatusBadge,
+} from "./ui";
 type Props = {
   records: ApplicationRecord[];
   today: string;
@@ -41,7 +38,6 @@ export function Dashboard({
   onAdd,
   onOpen,
   onComplete,
-  onNavigate,
 }: Props) {
   const counts = metrics(records);
   const tasks = tasksFor(records, today);
@@ -53,238 +49,162 @@ export function Dashboard({
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     .slice(0, 5);
   const stats = [
-    {
-      label: "Total applications",
-      value: counts.total,
-      detail: "Every opportunity, in one place",
-      Icon: BriefcaseBusiness,
-      color: "slate",
-    },
-    {
-      label: "Active applications",
-      value: counts.active,
-      detail: "Your opportunities in progress",
-      Icon: Target,
-      color: "blue",
-    },
-    {
-      label: "Submitted",
-      value: counts.submitted,
-      detail: "Applications with a date applied",
-      Icon: ArrowUpRight,
-      color: "purple",
-    },
-    {
-      label: "Interviews",
-      value: counts.interview,
-      detail: "Currently at interview stage",
-      Icon: MessageSquare,
-      color: "amber",
-    },
-    {
-      label: "Offers",
-      value: counts.offer,
-      detail: "Something worth celebrating",
-      Icon: Trophy,
-      color: "green",
-    },
-  ];
+    ["Total applications", counts.total],
+    ["Active", counts.active],
+    ["Submitted", counts.submitted],
+    ["At interview", counts.interview],
+    ["Offers", counts.offer],
+  ] as const;
   return (
     <>
       <div className="page-heading">
-        <div>
-          <div className="eyebrow">
-            <span className="tiny-dot" />
-            YOUR NEXT CHAPTER
-          </div>
-          <h1>A little progress, every day.</h1>
-          <p>
-            Your applications, next steps, and opportunities. All in one place.
-          </p>
-        </div>
+        <h1>Application overview</h1>
         <button className="button primary" onClick={onAdd}>
-          <Plus size={18} />
+          <Plus size={17} />
           Add application
         </button>
       </div>
-      <div className="stats-grid">
-        {stats.map(({ label, value, detail, Icon, color }) => (
-          <article className="stat-card" key={label}>
-            <div className="stat-top">
-              <span>{label}</span>
-              <span className={`stat-icon ${color}`}>
-                <Icon size={17} />
-              </span>
-            </div>
-            <strong>{value.toString().padStart(2, "0")}</strong>
-            <p>{detail}</p>
-          </article>
+      <dl className="metric-strip" aria-label="Application totals">
+        {stats.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
         ))}
-      </div>
+      </dl>
       <div className="dashboard-grid">
-        <section className="card today-card">
-          <header className="card-header">
-            <div className="title-with-icon">
-              <span className="heading-icon">
-                <ListTodo size={20} />
-              </span>
-              <div>
-                <h2>What should I do today?</h2>
-                <p>Make your next move a little clearer.</p>
-              </div>
-            </div>
-            <span className="count-pill">{tasks.length} tasks</span>
+        <section className="agenda" aria-labelledby="agenda-title">
+          <header className="section-heading">
+            <h2 id="agenda-title">Next actions</h2>
+            <a className="text-link" href="#today">
+              View agenda <ArrowUpRight size={15} />
+            </a>
           </header>
-          <div className="tab-row">
-            {["All tasks", "Overdue", "Today", "Next 7 days"].map((t) => (
+          <div className="tab-row" role="group" aria-label="Due date">
+            {["All tasks", "Overdue", "Today", "Next 7 days"].map((tab) => (
               <button
-                key={t}
-                className={taskTab === t ? "active" : ""}
-                aria-pressed={taskTab === t}
-                onClick={() => setTaskTab(t)}
+                key={tab}
+                aria-pressed={taskTab === tab}
+                onClick={() => setTaskTab(tab)}
               >
-                {t}
-                {t === "Overdue" && tasks.some((x) => x.group === t) && (
+                {tab}
+                {tab === "Overdue" && tasks.some((t) => t.group === tab) && (
                   <span className="tab-count">
-                    {tasks.filter((x) => x.group === t).length}
+                    {tasks.filter((t) => t.group === tab).length}
                   </span>
                 )}
               </button>
             ))}
           </div>
           {shownTasks.length ? (
-            <div className="task-list">
-              {shownTasks.slice(0, 5).map((task, i) => (
+            <>
+              {shownTasks.slice(0, 5).map((task) => (
                 <TaskRow
-                  key={`${task.application.id}-${task.kind}-${i}`}
+                  key={task.application.id + task.kind}
                   task={task}
                   onOpen={onOpen}
                   onComplete={onComplete}
                 />
               ))}
               {shownTasks.length > 5 && (
-                <button
-                  className="text-link more-tasks"
-                  onClick={() => onNavigate("today")}
-                >
-                  See all {shownTasks.length} tasks
-                  <ArrowRight size={15} />
-                </button>
+                <a className="text-link more-tasks" href="#today">
+                  See all {shownTasks.length} tasks <ArrowRight size={15} />
+                </a>
               )}
-            </div>
+            </>
           ) : (
-            <div className="tasks-empty">
-              <div className="empty-orbit">
-                <CheckCheck size={29} strokeWidth={1.5} />
-                <span />
+            <div className="agenda-empty">
+              <CalendarCheck2 size={29} strokeWidth={1.3} aria-hidden="true" />
+              <div>
+                <h3>
+                  {taskTab === "Overdue"
+                    ? "No overdue tasks"
+                    : taskTab === "Today"
+                      ? "Nothing due today"
+                      : taskTab === "Next 7 days"
+                        ? "Nothing due in the next 7 days"
+                        : "No actions due"}
+                </h3>
+                <p>
+                  {taskTab !== "All tasks" && tasks.length
+                    ? "Other dates have scheduled tasks."
+                    : "Dated next actions and submission deadlines appear here."}
+                </p>
+                {taskTab !== "All tasks" && tasks.length > 0 && (
+                  <button
+                    className="text-link"
+                    onClick={() => setTaskTab("All tasks")}
+                  >
+                    Show all tasks <ArrowRight size={14} />
+                  </button>
+                )}
               </div>
-              <h3>
-                {records.length
-                  ? "A little breathing room."
-                  : "A clear head. A fresh start."}
-              </h3>
-              <p>
-                {records.length
-                  ? "No tasks in this view. Add a next action to an application to keep things moving."
-                  : "Once you add a next action or deadline, your priorities will show up right here."}
-              </p>
-              <button className="text-link" onClick={onAdd}>
-                Add an application
-                <ArrowRight size={15} />
-              </button>
             </div>
           )}
-          <footer className="card-note">
-            <CircleCheck size={14} />
-            <span>One small step today is progress for tomorrow.</span>
-          </footer>
         </section>
-        <section className="card pipeline-card">
-          <header className="card-header">
-            <div>
-              <h2>Your application pipeline</h2>
-              <p>Every stage of your journey.</p>
-            </div>
-            <span className="icon-tile">
-              <BriefcaseBusiness size={18} />
-            </span>
+        <section className="pipeline" aria-labelledby="pipeline-title">
+          <header className="section-heading">
+            <h2 id="pipeline-title">Application pipeline</h2>
           </header>
-          <div className="pipeline-total">
-            <strong>{counts.total}</strong>
-            <span>tracked applications</span>
-          </div>
-          <div
-            className="pipeline-stack"
-            role="img"
-            aria-label={STATUSES.map((s) => `${s}: ${counts.statuses[s]}`).join(
-              ", ",
-            )}
-          >
-            {counts.total ? (
-              STATUSES.map(
-                (s) =>
-                  counts.statuses[s] > 0 && (
+          <dl className="pipeline-rows">
+            {STATUSES.map((status) => (
+              <div key={status}>
+                <dt>{status}</dt>
+                <dd>
+                  <span className="pipeline-track" aria-hidden="true">
                     <span
-                      key={s}
-                      className={`bar-${STATUS_COLORS[s]}`}
-                      style={{ flex: counts.statuses[s] }}
-                      title={`${s}: ${counts.statuses[s]}`}
+                      className={`bar-${STATUS_COLORS[status]}`}
+                      style={{
+                        width:
+                          (counts.total
+                            ? (counts.statuses[status] / counts.total) * 100
+                            : 0) + "%",
+                      }}
                     />
-                  ),
-              )
-            ) : (
-              <span className="empty-bar" />
-            )}
-          </div>
-          <div className="pipeline-legend">
-            {STATUSES.map((s) => (
-              <div key={s}>
-                <span className={`legend-dot bar-${STATUS_COLORS[s]}`} />
-                <span>{s}</span>
-                <strong>{counts.statuses[s]}</strong>
+                  </span>
+                  <span>{counts.statuses[status]}</span>
+                </dd>
               </div>
             ))}
-          </div>
-          <footer className="pipeline-footer">
-            <button className="text-link" onClick={() => onNavigate("board")}>
-              Explore board view
-              <ArrowRight size={15} />
-            </button>
-          </footer>
+          </dl>
+          <a className="text-link pipeline-link" href="#board">
+            Open board <ArrowUpRight size={15} />
+          </a>
         </section>
       </div>
-      <section className="card recent-card">
-        <header className="card-header">
-          <div>
-            <h2>Recent applications</h2>
-            <p>A quick look at where you left off.</p>
-          </div>
-          <button
-            className="text-link"
-            onClick={() => onNavigate("applications")}
-          >
-            View all applications
-            <ArrowRight size={15} />
-          </button>
+      <section className="recent-section" aria-labelledby="recent-title">
+        <header className="section-heading">
+          <h2 id="recent-title">Recent applications</h2>
+          <a className="text-link" href="#applications">
+            View all applications <ArrowUpRight size={15} />
+          </a>
         </header>
         {recent.length ? (
           <div className="table-scroll">
-            <table className="applications-table recent-table">
-              <thead>
-                <tr>
-                  <th>COMPANY & ROLE</th>
-                  <th>STATUS</th>
-                  <th>INTERNSHIP TERM</th>
-                  <th>NEXT STEP</th>
-                  <th>
+            <table role="table" className="applications-table recent-table">
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th scope="col" role="columnheader">
+                    Company & role
+                  </th>
+                  <th scope="col" role="columnheader">
+                    Status
+                  </th>
+                  <th scope="col" role="columnheader">
+                    Internship term
+                  </th>
+                  <th scope="col" role="columnheader">
+                    Next step
+                  </th>
+                  <th scope="col" role="columnheader">
                     <span className="sr-only">Open application</span>
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody role="rowgroup">
                 {recent.map((a) => (
-                  <tr key={a.id}>
-                    <td>
+                  <tr role="row" key={a.id}>
+                    <td role="cell">
                       <button
                         className="company-cell"
                         onClick={() => onOpen(a)}
@@ -296,11 +216,19 @@ export function Dashboard({
                         </span>
                       </button>
                     </td>
-                    <td>
+                    <td role="cell">
                       <StatusBadge status={a.status} />
                     </td>
-                    <td className="muted">{a.term || "—"}</td>
-                    <td>
+                    <td role="cell" className="muted">
+                      <span className="mobile-field" aria-hidden="true">
+                        Term
+                      </span>
+                      {a.term || "—"}
+                    </td>
+                    <td role="cell">
+                      <span className="mobile-field" aria-hidden="true">
+                        Next step
+                      </span>
                       <span className="cell-action">
                         {a.nextAction || "No next action"}
                       </span>
@@ -311,7 +239,7 @@ export function Dashboard({
                         </span>
                       )}
                     </td>
-                    <td>
+                    <td role="cell">
                       <button
                         className="icon-button"
                         onClick={() => onOpen(a)}
@@ -329,13 +257,15 @@ export function Dashboard({
           <EmptyState onAdd={onAdd} />
         )}
       </section>
-      <div className="bottom-notes">
-        <span>
-          <span className="tiny-dot" />
-          Your workspace. Your pace.
-        </span>
-        <span>Active excludes offers, rejections, and withdrawals.</span>
-      </div>
+
+      <details className="metric-key">
+        <summary>How totals are counted</summary>
+        <p>
+          Active excludes offers, rejections, and withdrawals. Submitted counts
+          applications with a date applied. Interview and offer counts use the
+          current status.
+        </p>
+      </details>
     </>
   );
 }
@@ -350,41 +280,42 @@ export function TaskRow({
 }) {
   return (
     <div className="task-row">
-      {task.kind === "action" ? (
-        <button
-          className="task-check"
-          aria-label={`Complete ${task.title} for ${task.application.company}`}
-          onClick={() => onComplete(task.application)}
-        >
-          <Check size={14} />
-        </button>
-      ) : (
-        <span className="task-deadline">
-          <CalendarDays size={17} />
-        </span>
-      )}
+      <DateStamp value={task.day} />
       <button className="task-main" onClick={() => onOpen(task.application)}>
         <strong>{task.title}</strong>
         <span>
           {task.application.company}
-          <span className="separator">·</span>
+          <span className="separator"> · </span>
           {task.application.position}
         </span>
       </button>
-      <span
-        className={`task-date ${task.group === "Overdue" ? "overdue" : task.group === "Today" ? "due-today" : ""}`}
-      >
-        <Clock3 size={12} />
-        {task.group === "Today" ? "Today" : formatDate(task.day)}
-        {task.group === "Overdue" && <span className="sr-only">, overdue</span>}
-      </span>
-      <button
-        className="icon-button task-open"
-        onClick={() => onOpen(task.application)}
-        aria-label={`Open ${task.application.company}`}
-      >
-        <ArrowUpRight size={16} />
-      </button>
+      {task.group !== "Next 7 days" && (
+        <span
+          className={`due-label ${task.group === "Overdue" ? "overdue" : ""}`}
+        >
+          {task.group}
+        </span>
+      )}
+      {task.kind === "action" ? (
+        <button
+          className="icon-button task-check"
+          title="Complete action"
+          aria-label={`Complete ${task.title} for ${task.application.company}`}
+          onClick={() => onComplete(task.application)}
+        >
+          <span>
+            <Check size={14} strokeWidth={2} />
+          </span>
+        </button>
+      ) : (
+        <button
+          className="icon-button task-open"
+          aria-label={`Open ${task.application.company} deadline`}
+          onClick={() => onOpen(task.application)}
+        >
+          <ArrowUpRight size={17} />
+        </button>
+      )}
     </div>
   );
 }
@@ -394,61 +325,48 @@ export function TodayPage(props: Props) {
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">A SMALL STEP FORWARD</div>
-          <h1>Your next moves</h1>
+          <h1>Next actions</h1>
           <p>
             Actions and submission deadlines through{" "}
             {formatDate(addDays(props.today, 7), true)}.
           </p>
         </div>
         <button className="button primary" onClick={props.onAdd}>
-          <Plus size={18} />
+          <Plus size={17} />
           Add application
         </button>
       </div>
-      <div className="today-layout">
-        <div>
-          {["Overdue", "Today", "Next 7 days"].map((group) => (
-            <section className="card task-group" key={group}>
-              <header className="card-header">
+      <div className="agenda-groups">
+        {(["Overdue", "Today", "Next 7 days"] as const).map((group) => {
+          const entries = tasks.filter((t) => t.group === group);
+          return (
+            <section className="agenda-group" key={group}>
+              <header>
                 <h2>{group}</h2>
-                <span className="count-pill">
-                  {tasks.filter((t) => t.group === group).length}
-                </span>
+                <span className="group-count">{entries.length}</span>
               </header>
-              {tasks.filter((t) => t.group === group).length ? (
-                tasks
-                  .filter((t) => t.group === group)
-                  .map((t) => (
+              <div>
+                {entries.length ? (
+                  entries.map((task) => (
                     <TaskRow
-                      key={`${t.application.id}-${t.kind}`}
-                      task={t}
+                      key={task.application.id + task.kind}
+                      task={task}
                       onOpen={props.onOpen}
                       onComplete={props.onComplete}
                     />
                   ))
-              ) : (
-                <p className="group-empty">
-                  Nothing here. You’re all caught up.
-                </p>
-              )}
+                ) : (
+                  <p className="group-empty">No tasks scheduled.</p>
+                )}
+              </div>
             </section>
-          ))}
-        </div>
-        <aside className="focus-note">
-          <Sparkles size={24} />
-          <h2>Small steps add up.</h2>
-          <p>
-            Try giving each active application one clear next action. A resume
-            update, a little research, a follow-up — it all counts.
-          </p>
-          <hr />
-          <p className="small">
-            All dates use America/Toronto. Offers, rejected, and withdrawn
-            applications are excluded from reminders.
-          </p>
-        </aside>
+          );
+        })}
       </div>
+      <p className="small muted agenda-note">
+        Dates use America/Toronto. Reminders end when an application is offered,
+        rejected, or withdrawn.
+      </p>
     </>
   );
 }

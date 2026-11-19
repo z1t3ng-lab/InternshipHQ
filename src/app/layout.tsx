@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 export const metadata: Metadata = {
-  title: "InternshipHQ · Your next chapter starts here",
+  title: "Overview · InternshipHQ",
   description:
     "Your personal workspace for internship applications, deadlines, and next steps.",
 };

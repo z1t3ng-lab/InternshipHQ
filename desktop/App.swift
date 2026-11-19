@@ -93,7 +93,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
         window.delegate = self
         window.setFrameAutosaveName("InternshipHQMainWindow")
         window.center()
-        window.backgroundColor = NSColor(calibratedRed: 0.97, green: 0.97, blue: 0.985, alpha: 1)
+        window.backgroundColor = NSColor(srgbRed: 0.976, green: 0.973, blue: 0.949, alpha: 1)
         let container = NSView(); window.contentView = container
         let settings = WKWebViewConfiguration()
         webView = WKWebView(frame: .zero, configuration: settings)
@@ -108,15 +108,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
         let image = NSImageView(image: NSImage(contentsOf: Bundle.main.url(forResource: "AppIcon", withExtension: "icns")!) ?? NSImage())
         image.translatesAutoresizingMaskIntoConstraints = false
         image.widthAnchor.constraint(equalToConstant: 76).isActive = true; image.heightAnchor.constraint(equalToConstant: 76).isActive = true
-        let heading = NSTextField(labelWithString: "Your next chapter is loading.")
-        heading.font = .systemFont(ofSize: 25, weight: .semibold); heading.alignment = .center
         statusLabel = NSTextField(wrappingLabelWithString: "Starting InternshipHQ…")
-        statusLabel.alignment = .center; statusLabel.textColor = .secondaryLabelColor
+        statusLabel.alignment = .center; statusLabel.textColor = NSColor(srgbRed: 0.12, green: 0.26, blue: 0.21, alpha: 1)
         statusLabel.font = .systemFont(ofSize: 14)
         statusLabel.preferredMaxLayoutWidth = 460
         spinner = NSProgressIndicator(); spinner.style = .spinning; spinner.controlSize = .regular; spinner.startAnimation(nil)
         retryButton = NSButton(title: "Try Again", target: self, action: #selector(retry)); retryButton.bezelStyle = .rounded; retryButton.isHidden = true
-        loading = NSStackView(views: [image, heading, statusLabel, spinner, retryButton])
+        loading = NSStackView(views: [image, statusLabel, spinner, retryButton])
         loading.orientation = .vertical; loading.spacing = 18; loading.alignment = .centerX; loading.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(loading)
         NSLayoutConstraint.activate([loading.centerXAnchor.constraint(equalTo: container.centerXAnchor), loading.centerYAnchor.constraint(equalTo: container.centerYAnchor), loading.widthAnchor.constraint(lessThanOrEqualToConstant: 500)])

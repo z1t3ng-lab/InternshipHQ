@@ -157,21 +157,25 @@ export function ApplicationForm({
       <select
         id={key}
         value={data[key]}
+        aria-invalid={!!errors[key]}
+        aria-describedby={errors[key] ? `${key}-error` : undefined}
         onChange={(e) => set(key, e.target.value)}
       >
         {options.map((o) => (
           <option key={o}>{o}</option>
         ))}
       </select>
-      {errors[key] && <span className="field-error">{errors[key]}</span>}
+      {errors[key] && (
+        <span className="field-error" id={`${key}-error`}>
+          {errors[key]}
+        </span>
+      )}
     </div>
   );
   return (
     <Modal
       title={record ? record.company : "Add an application"}
-      subtitle={
-        record ? record.position : "A new opportunity, one small step forward."
-      }
+      subtitle={record?.position}
       onClose={onClose}
       wide
     >
@@ -239,16 +243,6 @@ export function ApplicationForm({
             {select("status", STATUSES)}
             {select("priority", PRIORITIES)}
           </div>
-          <button
-            type="button"
-            className="disclosure"
-            aria-expanded={more}
-            onClick={() => setMore(!more)}
-          >
-            <ChevronDown size={17} className={more ? "rotated" : ""} />
-            {more ? "Hide additional details" : "Add dates, links, and more"}
-            <span>Optional</span>
-          </button>
           <ApplicationDocuments
             data={data}
             errors={errors}
@@ -257,8 +251,18 @@ export function ApplicationForm({
               setDuplicate(false);
             }}
           />
+          <button
+            type="button"
+            className="disclosure"
+            aria-expanded={more}
+            aria-controls={more ? "additional-application-fields" : undefined}
+            onClick={() => setMore(!more)}
+          >
+            <ChevronDown size={17} className={more ? "rotated" : ""} />
+            {more ? "Hide additional details" : "Add dates, links, and more"}
+          </button>
           {more && (
-            <>
+            <div id="additional-application-fields">
               <h3 className="form-section">The opportunity</h3>
               <div className="form-grid">
                 {field("jobUrl", "url", "https://…", true)}
@@ -340,7 +344,7 @@ export function ApplicationForm({
                   )}
                 </div>
               )}
-            </>
+            </div>
           )}
           {record && (
             <section className="history">

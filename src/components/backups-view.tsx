@@ -56,7 +56,6 @@ export function BackupsView({
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">A SAFETY NET FOR YOUR PROGRESS</div>
           <h1>Backups & restore</h1>
           <p>
             Your applications, document files, interviews, and email reviews

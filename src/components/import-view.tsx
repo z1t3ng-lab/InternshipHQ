@@ -81,9 +81,7 @@ export function ImportView({
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">BRING YOUR PROGRESS WITH YOU</div>
           <h1>Import & export</h1>
-          <p>Move from a spreadsheet. Keep a copy of everything.</p>
         </div>
         <a className="button" href="/api/export" download>
           <ArrowDownToLine size={17} />
@@ -93,15 +91,7 @@ export function ImportView({
       <div className="import-layout">
         <section className="card import-card">
           <header className="card-header">
-            <div className="title-with-icon">
-              <span className="heading-icon">
-                <FileSpreadsheet size={20} />
-              </span>
-              <div>
-                <h2>Import from a spreadsheet</h2>
-                <p>A fresh workspace for the work you’ve already done.</p>
-              </div>
-            </div>
+            <h2>Import from a spreadsheet</h2>
           </header>
           <div className="import-body">
             <ol className="import-steps">
@@ -143,8 +133,7 @@ export function ImportView({
                 <span className="upload-icon">
                   <Upload size={26} strokeWidth={1.5} />
                 </span>
-                <strong>Give your spreadsheet a new home</strong>
-                <span>Choose a CSV file, or drag it here.</span>
+                <strong>Drop your CSV here</strong>
                 <span className="button primary">
                   Browse files
                   <FolderOpen size={16} />
@@ -344,9 +333,6 @@ export function ImportView({
         </section>
         <aside className="import-aside">
           <section className="card">
-            <span className="icon-tile">
-              <FileSpreadsheet size={21} />
-            </span>
             <h3>Coming from Google Sheets?</h3>
             <p>
               In your sheet, select{" "}
@@ -359,10 +345,7 @@ export function ImportView({
             </a>
           </section>
           <section className="card">
-            <span className="icon-tile">
-              <ArrowDownToLine size={21} />
-            </span>
-            <h3>Your data, to keep.</h3>
+            <h3>CSV exports</h3>
             <p>
               Export includes every application field, dates, and activity
               history. Import that file into an empty database to restore it.

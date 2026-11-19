@@ -4,20 +4,17 @@ import {
   ArchiveRestore,
   BarChart3,
   ArrowDownToLine,
-  ArrowRight,
   BriefcaseBusiness,
   CalendarDays,
-  Check,
   CheckCircle2,
-  ChevronRight,
   Columns3,
+  Files,
   FolderOpen,
+  HardDrive,
   LayoutDashboard,
   ListTodo,
   Mail,
   Menu,
-  ShieldCheck,
-  Sparkles,
   X,
 } from "lucide-react";
 import {
@@ -38,15 +35,24 @@ import { BackupsView } from "./backups-view";
 import { InsightsView } from "./insights-view";
 import { EmailView } from "./email-view";
 
-const NAV = [
-  { key: "dashboard", label: "Overview", Icon: LayoutDashboard },
-  { key: "applications", label: "Applications", Icon: BriefcaseBusiness },
-  { key: "board", label: "Board view", Icon: Columns3 },
-  { key: "today", label: "Next actions", Icon: ListTodo },
-  { key: "interviews", label: "Interviews", Icon: CalendarDays },
-  { key: "documents", label: "Documents", Icon: FolderOpen },
-  { key: "document-usage", label: "Document usage", Icon: FolderOpen },
-  { key: "insights", label: "Insights", Icon: BarChart3 },
+const NAV_GROUPS = [
+  [
+    { key: "dashboard", label: "Overview", Icon: LayoutDashboard },
+    { key: "applications", label: "Applications", Icon: BriefcaseBusiness },
+    { key: "board", label: "Board view", Icon: Columns3 },
+    { key: "today", label: "Next actions", Icon: ListTodo },
+    { key: "interviews", label: "Interviews", Icon: CalendarDays },
+  ],
+  [
+    { key: "documents", label: "Documents", Icon: FolderOpen },
+    { key: "document-usage", label: "Document usage", Icon: Files },
+    { key: "email", label: "Email updates", Icon: Mail },
+    { key: "insights", label: "Insights", Icon: BarChart3 },
+  ],
+  [
+    { key: "import", label: "Import & export", Icon: ArrowDownToLine },
+    { key: "backups", label: "Backups & restore", Icon: ArchiveRestore },
+  ],
 ];
 const TITLES: Record<string, string> = {
   dashboard: "Overview",
@@ -103,10 +109,19 @@ export function Tracker({ demo }: { demo: boolean }) {
       window.removeEventListener("internshiphq:add", openNewApplication);
   }, []);
   useEffect(() => {
-    const sync = () => {
+    const sync = (event?: HashChangeEvent) => {
       const hash = window.location.hash.slice(1).split("?")[0];
       if (TITLES[hash]) setView(hash);
       else setView("dashboard");
+      if (event) {
+        setMobileNav(false);
+        requestAnimationFrame(() => {
+          document
+            .getElementById("main-content")
+            ?.focus({ preventScroll: true });
+          window.scrollTo(0, 0);
+        });
+      }
     };
     sync();
     window.addEventListener("hashchange", sync);
@@ -120,7 +135,7 @@ export function Tracker({ demo }: { demo: boolean }) {
   useEffect(() => {
     if (!mobileNav) return;
     const sidebar = document.querySelector<HTMLElement>(".sidebar")!;
-    const previous = document.activeElement as HTMLElement | null;
+    const trigger = document.querySelector<HTMLButtonElement>(".mobile-menu");
     const oldOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const focusables = () =>
@@ -141,11 +156,17 @@ export function Tracker({ demo }: { demo: boolean }) {
         items[0]?.focus();
       }
     };
+    const desktop = window.matchMedia("(min-width: 901px)");
+    const closeOnResize = () => {
+      if (desktop.matches) setMobileNav(false);
+    };
+    desktop.addEventListener("change", closeOnResize);
     document.addEventListener("keydown", trap);
     return () => {
+      desktop.removeEventListener("change", closeOnResize);
       document.removeEventListener("keydown", trap);
       document.body.style.overflow = oldOverflow;
-      previous?.focus();
+      trigger?.focus({ preventScroll: true });
     };
   }, [mobileNav]);
   useEffect(() => {
@@ -162,6 +183,9 @@ export function Tracker({ demo }: { demo: boolean }) {
     setView(next);
     setMobileNav(false);
   }
+  useEffect(() => {
+    document.title = TITLES[view] + " · InternshipHQ";
+  }, [view]);
   function open(a: ApplicationRecord) {
     setEditing(a);
     window.history.replaceState(
@@ -178,7 +202,7 @@ export function Tracker({ demo }: { demo: boolean }) {
     setRecords((r) => [a, ...r.filter((x) => x.id !== a.id)]);
     close();
     setCompleting(null);
-    notify("Application saved. You’re one step closer.");
+    notify("Application saved.");
   }
   async function status(a: ApplicationRecord, s: Status) {
     try {
@@ -224,164 +248,112 @@ export function Tracker({ demo }: { demo: boolean }) {
       {mobileNav && (
         <button
           className="nav-scrim"
+          tabIndex={-1}
           aria-label="Close navigation"
           onClick={() => setMobileNav(false)}
         />
       )}
-      <aside className={`sidebar ${mobileNav ? "is-open" : ""}`}>
-        <button
-          className="icon-button mobile-nav-close"
-          aria-label="Close navigation"
-          onClick={() => setMobileNav(false)}
-        >
-          <X size={18} />
-        </button>
-        <a
-          href="#dashboard"
-          className="brand"
-          onClick={() => navigate("dashboard")}
-        >
-          <span className="brand-icon">
-            <BriefcaseBusiness size={23} strokeWidth={1.8} />
-            <span />
-          </span>
-          <span>
-            Internship<span className="brand-hq">HQ</span>
-          </span>
-        </a>
-        <div className="workspace-label">YOUR PERSONAL WORKSPACE</div>
-        <nav aria-label="Main navigation">
-          <div className="nav-section-label">WORKSPACE</div>
-          {NAV.map(({ key, label, Icon }) => (
-            <a
-              href={`#${key}`}
-              key={key}
-              aria-current={view === key ? "page" : undefined}
-              className={`nav-item ${view === key ? "active" : ""}`}
-              onClick={(e) => {
-                e.preventDefault();
-                navigate(key);
-              }}
-            >
-              <Icon size={19} strokeWidth={1.8} />
-              <span>{label}</span>
-              {key === "applications" && (
-                <span className="nav-count">{records.length}</span>
-              )}
-              {key === "today" && todayCount > 0 && (
-                <span className="nav-count attention">{todayCount}</span>
-              )}
-            </a>
-          ))}
-          <div className="nav-section-label tools-label">TOOLS</div>
+      <aside
+        id="workspace-navigation"
+        className={`sidebar ${mobileNav ? "is-open" : ""}`}
+        role={mobileNav ? "dialog" : undefined}
+        aria-modal={mobileNav || undefined}
+        aria-label="Workspace navigation"
+      >
+        <div className="brand-row">
           <a
-            href="#import"
-            className={`nav-item ${view === "import" ? "active" : ""}`}
-            aria-current={view === "import" ? "page" : undefined}
-            onClick={(e) => {
-              e.preventDefault();
-              navigate("import");
+            href="#dashboard"
+            className="brand"
+            onClick={(event) => {
+              event.preventDefault();
+              navigate("dashboard");
             }}
           >
-            <ArrowDownToLine size={19} />
-            <span>Import & export</span>
-          </a>
-          <a
-            href="#email"
-            className={`nav-item ${view === "email" ? "active" : ""}`}
-            aria-current={view === "email" ? "page" : undefined}
-            onClick={(e) => {
-              e.preventDefault();
-              navigate("email");
-            }}
-          >
-            <Mail size={19} />
-            <span>Email updates</span>
-          </a>
-          <a
-            href="#backups"
-            className={`nav-item ${view === "backups" ? "active" : ""}`}
-            aria-current={view === "backups" ? "page" : undefined}
-            onClick={(e) => {
-              e.preventDefault();
-              navigate("backups");
-            }}
-          >
-            <ArchiveRestore size={19} />
-            <span>Backups & restore</span>
-          </a>
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="journey-card">
-            <span className="journey-spark">
-              <Sparkles size={19} />
+            <span className="ledger-mark" aria-hidden="true">
+              <i />
             </span>
-            <h3>
-              Big futures.
-              <br />
-              Small next steps.
-            </h3>
-            <p>Your next opportunity starts with showing up.</p>
-            <div className="journey-line">
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-          </div>
-          <div className="local-profile">
-            <div className="profile-avatar">YO</div>
-            <div>
-              <strong>Your workspace</strong>
-              <span>
-                <span className="tiny-dot" />
-                {demo ? "Fictional demo data" : "Local & personal"}
-              </span>
-            </div>
-            <ShieldCheck size={17} />
-          </div>
+            <span>
+              Internship<span className="brand-hq">HQ</span>
+            </span>
+          </a>
+          <button
+            className="icon-button mobile-nav-close"
+            aria-label="Close navigation"
+            onClick={() => setMobileNav(false)}
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <nav aria-label="Main navigation">
+          {NAV_GROUPS.map((group) => (
+            <ul className="nav-group" key={group[0].key}>
+              {group.map(({ key, label, Icon }) => (
+                <li key={key}>
+                  <a
+                    href={`#${key}`}
+                    aria-current={view === key ? "page" : undefined}
+                    className={`nav-item ${view === key ? "active" : ""}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate(key);
+                    }}
+                  >
+                    <Icon size={18} strokeWidth={1.65} aria-hidden="true" />
+                    <span>{label}</span>
+                    {key === "applications" && !loading && !loadError && (
+                      <span className="nav-count">{records.length}</span>
+                    )}
+                    {key === "today" && todayCount > 0 && (
+                      <span className="nav-count attention">{todayCount}</span>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ))}
+        </nav>
+        <div className="sidebar-foot">
+          <HardDrive size={16} aria-hidden="true" />
+          {demo ? "Demo workspace" : "Local workspace"}
         </div>
       </aside>
-      <div className="main-shell">
+      <div className="main-shell" inert={mobileNav}>
         <header className="topbar">
-          <div className="breadcrumb">
+          <div className="mobile-topbar">
             <button
               className="icon-button mobile-menu"
               aria-label="Open navigation"
+              aria-controls="workspace-navigation"
               aria-expanded={mobileNav}
               onClick={() => setMobileNav(true)}
             >
-              <Menu size={20} />
+              <Menu size={21} />
             </button>
-            <span>Workspace</span>
-            <ChevronRight size={14} />
-            <strong>{TITLES[view]}</strong>
-          </div>
-          <div className="topbar-right">
-            <span className="today-date">
-              <CalendarDays size={16} />
-              {today &&
-                new Intl.DateTimeFormat("en-CA", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                  timeZone: "UTC",
-                }).format(new Date(`${today}T12:00:00Z`))}
+            <span>
+              Internship<span className="mobile-hq">HQ</span>
             </span>
-            <span className="topbar-divider" />
-            <span className="profile-avatar small-avatar">YO</span>
           </div>
+          {today && (
+            <time
+              className="today-date"
+              dateTime={today}
+              title="America/Toronto"
+            >
+              <CalendarDays size={15} aria-hidden="true" />
+              {new Intl.DateTimeFormat("en-CA", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                timeZone: "UTC",
+              }).format(new Date(today + "T12:00:00Z"))}
+            </time>
+          )}
         </header>
         {demo && (
           <div className="demo-banner">
-            <Sparkles size={15} />
-            <strong>Demo workspace</strong>
-            <span>
-              These companies and applications are fictional. Your personal
-              database is separate.
-            </span>
+            <strong>Demo workspace</strong> Fictional applications in a separate
+            database.
           </div>
         )}
         <main id="main-content" tabIndex={-1}>
@@ -442,12 +414,6 @@ export function Tracker({ demo }: { demo: boolean }) {
             </>
           )}
         </main>
-        <footer className="app-footer">
-          <span>Made for the next chapter.</span>
-          <span>
-            InternshipHQ<span className="footer-dot">·</span>America/Toronto
-          </span>
-        </footer>
       </div>
       {editing && (
         <ApplicationForm

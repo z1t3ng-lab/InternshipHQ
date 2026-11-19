@@ -353,15 +353,18 @@ export function DocumentsView({ records }: { records: ApplicationRecord[] }) {
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">PREPARED FOR YOUR NEXT OPPORTUNITY</div>
           <h1>Documents</h1>
-          <p>
-            Your CVs, letters, and transcripts. Every version, in one place.
-          </p>
         </div>
-        <span className="document-local">
-          <FolderOpen size={17} aria-hidden="true" /> Stored locally
-        </span>
+        <button
+          className="button document-upload-jump"
+          onClick={() =>
+            document
+              .querySelector<HTMLSelectElement>(".document-upload-card select")
+              ?.focus()
+          }
+        >
+          <Upload size={16} aria-hidden="true" /> Upload a version
+        </button>
       </div>
       <div className="documents-layout">
         <div className="document-library">
@@ -490,7 +493,7 @@ export function DocumentsView({ records }: { records: ApplicationRecord[] }) {
               <h2>
                 {documents.length
                   ? "No matching documents"
-                  : "Your application toolkit starts here"}
+                  : "No documents yet"}
               </h2>
               <p>
                 {documents.length
@@ -512,8 +515,8 @@ export function DocumentsView({ records }: { records: ApplicationRecord[] }) {
             }}
           />
           <p className="document-retention muted small">
-            Each upload is a separate version. Archive older versions to tidy
-            your library; applications keep access to the originals.
+            Archiving hides a version from new applications. Existing
+            applications keep their original files.
           </p>
         </aside>
       </div>
